@@ -99,8 +99,8 @@ export class ChessBoard {
         if (piece == null) {
             return [];
         }
-        return piece.listOfMoves(this, position);
-        // REMOVE THIS RIGHT NOW
+        let moves = piece.listOfMoves(this, position);
+        return moves;
     }
 
     possibleMoves(color) {
@@ -112,7 +112,7 @@ export class ChessBoard {
                 continue;
             }
             if (piece.color == color) {
-                allPossibleMoves = allPossibleMoves.concat(piece.listOfMoves(this, position));
+                allPossibleMoves = allPossibleMoves.concat(this.possibleMovesForPiece(position));
             }
         }
         return allPossibleMoves;
@@ -160,29 +160,46 @@ export class ChessBoard {
         return str + '\n';
     }
 
-    validateMoves(moves, turnPlayer) {
-        let newMoves = [];
-        let kingPos;
+    isInCheck(color) {
+        let kingPos = null;
         for (let key of Object.keys(this.board)) {
             let piece = this.board[key];
-            if (piece.color == turnPlayer) {
+            if (piece.color == color) {
                 if (piece.isOfType(KING)) {
-                    kingPos = key;
+                    kingPos = stringToPosition(key);
                     break;
                 }
             }
         }
-        for (let move of moves) {
-            this.forceMove(move);
-            let possibleMoves = this.possibleMoves((turnPlayer == "white") ? "black" : "white");
-            let isKingSafe = true;
-            for (let possibleMove of possibleMoves) {
-                if (possibleMove.to.equals(kingPos)) {
-                    isKingSafe = false;
-                }
+        if (kingPos == null) {
+            throw new Error("No " + color + " king found");
+        }
+        let possibleMovesForOtherColor = this.possibleMoves((color == "white") ? "black" : "white");
+        for (let possibleMove of possibleMovesForOtherColor) {
+            if (possibleMove.to.equals(kingPos)) {
+                return true;
             }
-            if (isKingSafe) {
+        }
+        return false;
+    }
+
+    validateMoves(moves, turnPlayer) {
+        let newMoves = [];
+        for (let move of moves) {
+            // make move
+            let pieceCaptured = null;
+            if (move.isCapture) {
+                pieceCaptured = this.at(move.to);
+            }
+            this.forceMove(move);
+            // check if king would be put in check as a result
+            if (!this.isInCheck(turnPlayer)) {
                 newMoves.push(move);
+            }
+            // undo move
+            this.forceMove(new Move(move.to, move.from));
+            if (pieceCaptured != null) {
+                this.place(pieceCaptured, move.to);
             }
         }
         return newMoves;

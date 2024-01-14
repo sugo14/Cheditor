@@ -11,7 +11,7 @@ let audio = {
     blackMove: new Audio('sfx/move-black.mp3'),
     capture: new Audio('sfx/capture.mp3'),
     check: new Audio('sfx/check.mp3'),
-    checkmate: new Audio('sfx/game-end.mp3'),
+    checkmate: new Audio('sfx/game-end.webm'),
     promote: new Audio('sfx/promote.mp3'),
 }
 
@@ -106,7 +106,8 @@ function renderBoard() {
         selectedSymbol.id = "selected";
         selectedCellElement.parentNode.appendChild(selectedSymbol);
         // render possible moves
-        possibleMoves = board.possibleMovesForPiece(stringToPosition(selectedCellPosStr));
+        possibleMoves = board.validateMoves(board.possibleMovesForPiece(stringToPosition(selectedCellPosStr)), turnPlayer);
+        // REMOVE THIS RIGHT NOW
         for (let move of possibleMoves) {
             let cell = document.querySelectorAll("p");
             for (let c of cell) {
