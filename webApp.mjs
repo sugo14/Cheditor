@@ -1,11 +1,19 @@
 import { ChessBoard } from './chessBoard.mjs';
-import { Vector, Move, positionToString, stringToPosition } from './vector.mjs';
+import { Vector, positionToString, stringToPosition } from './vector.mjs';
 
 let selectedCellElement = null;
 let possibleMoves = [];
 let board = new ChessBoard();
 let turnPlayer = "white";
 let chess_board;
+let audio = {
+    whiteMove: new Audio('sfx/move-white.mp3'),
+    blackMove: new Audio('sfx/move-black.mp3'),
+    capture: new Audio('sfx/capture.mp3'),
+    check: new Audio('sfx/check.mp3'),
+    checkmate: new Audio('sfx/game-end.mp3'),
+    promote: new Audio('sfx/promote.mp3'),
+}
 
 function imageForPiece(piece) {
     return "images/chess-pieces/" + piece.color[0] + piece.appearance.toUpperCase() + ".svg";
@@ -20,16 +28,23 @@ function createBoard() {
             let text = document.createElement("p");
             text.innerText = positionToString(pos);
             cell.appendChild(text);
-            cell.addEventListener("click", function () {
+            cell.addEventListener("mousedown", function () {
                 const start = Date.now();
                 if (selectedCellElement != null) {
                     chess_board.querySelector("#selected").id = "";
                 }
+                else {
+                    possibleMoves = [];
+                }
                 for (let move of possibleMoves) {
                     if (move.to.equals(stringToPosition(text.innerText))) {
                         board.forceMove(move);
-                        let audio = new Audio('sfx/move-' + turnPlayer + '.mp3');
-                        audio.play();
+                        if (move.isCapture) {
+                            audio["capture"].play();
+                        }
+                        else {
+                            audio[turnPlayer + "Move"].play();
+                        }
                         turnPlayer = (turnPlayer == "white") ? "black" : "white";
                         possibleMoves = [];
                         break;

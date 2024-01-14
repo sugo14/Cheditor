@@ -37,7 +37,7 @@ export class ChessPiece {
         return moves;
     }
     isOfType(chessPieceType) {
-        return (this.appearance === chessPieceType.appearances[this.color == "white" ? 1 : 0]);
+        return (this.appearance == chessPieceType.appearances[(this.color == "white") ? 1 : 0]);
     }
 }
 

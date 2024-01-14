@@ -100,6 +100,7 @@ export class ChessBoard {
             return [];
         }
         return piece.listOfMoves(this, position);
+        // REMOVE THIS RIGHT NOW
     }
 
     possibleMoves(color) {
@@ -157,5 +158,33 @@ export class ChessBoard {
             str += String.fromCharCode(x + 97) + ' ';
         }
         return str + '\n';
+    }
+
+    validateMoves(moves, turnPlayer) {
+        let newMoves = [];
+        let kingPos;
+        for (let key of Object.keys(this.board)) {
+            let piece = this.board[key];
+            if (piece.color == turnPlayer) {
+                if (piece.isOfType(KING)) {
+                    kingPos = key;
+                    break;
+                }
+            }
+        }
+        for (let move of moves) {
+            this.forceMove(move);
+            let possibleMoves = this.possibleMoves((turnPlayer == "white") ? "black" : "white");
+            let isKingSafe = true;
+            for (let possibleMove of possibleMoves) {
+                if (possibleMove.to.equals(kingPos)) {
+                    isKingSafe = false;
+                }
+            }
+            if (isKingSafe) {
+                newMoves.push(move);
+            }
+        }
+        return newMoves;
     }
 }

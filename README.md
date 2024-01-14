@@ -7,3 +7,5 @@ todo:
 - rook & king castling
     - left side
     - right side
+
+https://www.chess.com/forum/view/general/chessboard-sound-files
