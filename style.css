@@ -9,7 +9,7 @@
 }
 
 body {
-    transition: linear background-color 0.5s;
+    transition: ease background-color 0.5s;
     --whiteCell: #f2e1c3;
     --blackCell: #c3a082;
     --whitePiece: #f9f9f9;

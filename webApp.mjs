@@ -4,8 +4,7 @@ import { Vector, positionToString, stringToPosition } from './vector.mjs';
 let selectedCellElement = null;
 let possibleMoves = [];
 let board = new ChessBoard();
-let turnPlayer = "white";
-let chess_board;
+let boardElement;
 let audio = {
     whiteMove: new Audio('sfx/move-white.mp3'),
     blackMove: new Audio('sfx/move-black.mp3'),
@@ -13,6 +12,34 @@ let audio = {
     check: new Audio('sfx/check.mp3'),
     checkmate: new Audio('sfx/game-end.webm'),
     promote: new Audio('sfx/promote.mp3'),
+}
+
+function cellOnClick(cell) {
+    const start = Date.now();
+    let posStr = cell.querySelector("p");
+    if (selectedCellElement != null) {
+        boardElement.querySelector("#selected").id = "";
+    }
+    else {
+        possibleMoves = [];
+    }
+    for (let move of possibleMoves) {
+        if (move.to.equals(stringToPosition(posStr.innerText))) {
+            board.move(move);
+            if (move.isCapture) {
+                audio["capture"].play();
+            }
+            else {
+                audio[board.turnPlayer + "Move"].play();
+            }
+            possibleMoves = [];
+            break;
+        }
+    }
+    selectedCellElement = cell.querySelector("p");
+    renderBoard();
+    const end = Date.now();
+    console.log("render took " + (end - start) + "ms");
 }
 
 function imageForPiece(piece) {
@@ -29,32 +56,7 @@ function createBoard() {
             text.innerText = positionToString(pos);
             cell.appendChild(text);
             cell.addEventListener("mousedown", function () {
-                const start = Date.now();
-                if (selectedCellElement != null) {
-                    chess_board.querySelector("#selected").id = "";
-                }
-                else {
-                    possibleMoves = [];
-                }
-                for (let move of possibleMoves) {
-                    if (move.to.equals(stringToPosition(text.innerText))) {
-                        board.forceMove(move);
-                        if (move.isCapture) {
-                            audio["capture"].play();
-                        }
-                        else {
-                            audio[turnPlayer + "Move"].play();
-                        }
-                        turnPlayer = (turnPlayer == "white") ? "black" : "white";
-                        possibleMoves = [];
-                        break;
-                    }
-                }
-                selectedCellElement = cell.querySelector("p");
-                renderBoard();
-                const end = Date.now();
-                console.log("render took " + (end - start) + "ms");
-
+                cellOnClick(cell);
             })
             cell.className = "cell ";
             if ((x + y) % 2 == 0) {
@@ -62,7 +64,7 @@ function createBoard() {
             } else {
                 cell.className += "black";
             }
-            chess_board.appendChild(cell);
+            boardElement.appendChild(cell);
         }
     }
     let end = Date.now();
@@ -73,15 +75,14 @@ function createBoard() {
 function clearBoard() {
     let cell = document.querySelectorAll(".cell");
     for (let c of cell) {
-        c.id = "";
         c.querySelectorAll("*:not(p)").forEach(e => e.remove());
     }
 }
 
 function renderBoard() {
     clearBoard();
-    document.body.style.backgroundColor = (turnPlayer == "white") ? "var(--whitePiece)" : "var(--blackPiece)";
-    let cells = chess_board.childNodes;
+    document.body.style.backgroundColor = "var(--" + board.turnPlayer + "Piece)";
+    let cells = boardElement.childNodes;
     // render pieces
     for (let y = 0; y < board.height; y++) {
         for (let x = 0; x < board.width; x++) {
@@ -100,14 +101,13 @@ function renderBoard() {
         return;
     }
     let selectedCellPosStr = selectedCellElement.innerText;
-    if (board.at(selectedCellPosStr) != null && board.at(selectedCellPosStr).color == turnPlayer) {
+    if (board.at(selectedCellPosStr) != null && board.at(selectedCellPosStr).color == board.turnPlayer) {
         // render selected piece
         let selectedSymbol = document.createElement("div");
         selectedSymbol.id = "selected";
         selectedCellElement.parentNode.appendChild(selectedSymbol);
         // render possible moves
-        possibleMoves = board.validateMoves(board.possibleMovesForPiece(stringToPosition(selectedCellPosStr)), turnPlayer);
-        // REMOVE THIS RIGHT NOW
+        possibleMoves = board.validateMoves(board.possibleMovesForPiece(stringToPosition(selectedCellPosStr)), board.turnPlayer);
         for (let move of possibleMoves) {
             let cell = document.querySelectorAll("p");
             for (let c of cell) {
@@ -132,6 +132,7 @@ function renderBoard() {
 }
 
 window.onload = function () {
-    chess_board = document.getElementById("board");
+    boardElement = document.getElementById("board");
+    window.addEventListener("resize", renderBoard);
     createBoard();
 }
