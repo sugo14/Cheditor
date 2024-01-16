@@ -137,6 +137,16 @@ export class ChessBoard {
         }
         return false;
     }
+    isInMate(color) {
+        let possibleMoves = this.possibleMoves(color);
+        return (possibleMoves.length == 0);
+    }
+    isInCheckmate(color) {
+        return (this.isInCheck(color) && this.isInMate(color));
+    }
+    isInStalemate(color) {
+        return (!this.isInCheck(color) && this.isInMate(color));
+    }
     validateMoves(moves, turnPlayer) {
         let newMoves = [];
         for (let move of moves) {
