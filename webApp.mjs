@@ -1,8 +1,9 @@
 import { ChessBoard } from './chessBoard.mjs';
-import { Vector, positionToString, stringToPosition } from './vector.mjs';
+import { Vector, Move, positionToString, stringToPosition } from './vector.mjs';
 
 let selectedCellElement = null;
 let possibleMoves = [];
+let lastMove = null;
 let board = new ChessBoard();
 let boardElement;
 let audio = {
@@ -25,6 +26,7 @@ function cellOnClick(cell) {
     }
     for (let move of possibleMoves) {
         if (move.to.equals(stringToPosition(posStr.innerText))) {
+            lastMove = new Move(move.from, move.to, move.isCapture);
             board.move(move);
             if (move.isCapture) {
                 audio["capture"].play();
@@ -86,13 +88,21 @@ function renderBoard() {
     // render pieces
     for (let y = 0; y < board.height; y++) {
         for (let x = 0; x < board.width; x++) {
+            let pos2 = new Vector(x, y);
             let cell2 = cells[y * board.width + x + 1];
-            let piece2 = board.at(new Vector(x, y));
+            let piece2 = board.at(pos2);
             if (piece2 != null) {
                 let pieceElement2 = document.createElement("img");
                 pieceElement2.src = imageForPiece(piece2);
                 pieceElement2.className = "piece";
                 cell2.appendChild(pieceElement2);
+            }
+            if (lastMove != null) {
+                if (lastMove.from.equals(pos2) || lastMove.to.equals(pos2)) {
+                    let lastMoveElement = document.createElement("div");
+                    lastMoveElement.id = "lastMove";
+                    cell2.appendChild(lastMoveElement);
+                }
             }
         }
     }
