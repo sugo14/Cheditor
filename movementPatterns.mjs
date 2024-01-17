@@ -1,6 +1,6 @@
 'use strict';
 
-import { Vector, Move, positionToString } from './vector.mjs';
+import { Vector, Move, ComplexCapture, MultiMove, positionToString } from './vector.mjs';
 
 class MovementPattern {
     constructor(movementVector) {
@@ -21,9 +21,9 @@ export class Movement extends MovementPattern {
         super(movementVector);
     }
     listOfMoves(board, position) {
-        let move = new Vector(position.x + this.movementVector.x, position.y + this.movementVector.y);
-        if (board.positionValid(move) && board.positionEmpty(move)) {
-            return [new Move(position, move)];
+        let endPos = new Vector(position.x + this.movementVector.x, position.y + this.movementVector.y);
+        if (board.positionValid(endPos) && board.positionEmpty(endPos)) {
+            return [new Move(position, endPos)];
         }
         return [];
     }
@@ -34,10 +34,11 @@ export class Capture extends Movement {
         this.color = piece.color;
     }
     listOfMoves(board, position) {
-        let move = new Vector(position.x + this.movementVector.x, position.y + this.movementVector.y);
-        if (board.positionValid(move) && !board.positionEmpty(move)) {
-            if (board.at(move).color != this.color) {
-                return [new Move(position, move, true)];
+        let endPos = new Vector(position.x + this.movementVector.x, position.y + this.movementVector.y);
+        if (board.positionValid(endPos) && !board.positionEmpty(endPos)) {
+            let piece = board.at(endPos);
+            if (piece.color != this.color) {
+                return [new Move(position, endPos, piece)];
             }
         }
         return [];
@@ -74,7 +75,7 @@ export class MovementCapture extends MovementPattern {
     }
 }
 
-// Movement pattern wrappers
+/* Movement pattern wrappers */
 
 class MovementPatternWrapper extends MovementPattern {
     constructor(movementPattern) {
@@ -134,7 +135,7 @@ loops:
                 } 
                 moves = moves.concat(newMoves);
                 newMoves = newMoves.filter(newMove => {
-                    if (newMove.isCapture) {
+                    if (newMove.isCapture()) {
                         return false;
                         // stop a line after a capture, because pieces can't x-ray through other ones
                     }
@@ -143,7 +144,7 @@ loops:
                 lastMoves = newMoves;
             }
         }
-        return moves.map(move => new Move(position, move.to, move.isCapture));
+        return moves.map(move => new Move(position, move.to, move.capturedPiece));
         // moves will have the wrong start position because of how repetition works, so must return move with accurate start position for piece
     }
 }
@@ -165,6 +166,84 @@ export class NTimeOnly extends MovementPatternWrapper {
         }
         if (this.lastPositions.length <= this.n) {
             return this.movementPattern.listOfMoves(board, position);
+        }
+        return [];
+    }
+}
+
+/* Special movement patterns */
+
+export class KingSideCastle extends MovementPattern {
+    constructor() {
+        super();
+    }
+    setPiece(piece) {
+        this.color = piece.color;
+    }
+    listOfMoves(board, position) {
+        if (!board.castleRights[this.color].kingSide) {
+            return [];
+        }
+        let endPos = new Vector(position.x + 2, position.y);
+        let position2 = new Vector(position.x + 3, position.y);
+        let endPos2 = new Vector(position.x + 1, position.y);
+        if (board.positionEmpty(endPos) && board.positionEmpty(endPos2)) {
+            return [new MultiMove([
+                new Move(position, endPos),
+                new Move(position2, endPos2)])];
+        }
+        return [];
+    }
+}
+
+export class QueenSideCastle extends MovementPattern {
+    constructor() {
+        super();
+    }
+    setPiece(piece) {
+        this.color = piece.color;
+    }
+    listOfMoves(board, position) {
+        if (!board.castleRights[this.color].queenSide) {
+            return [];
+        }
+        let endPos = new Vector(position.x - 2, position.y);
+        let position2 = new Vector(position.x - 4, position.y);
+        let endPos2 = new Vector(position.x - 1, position.y);
+        if (board.positionEmpty(endPos) && board.positionEmpty(endPos2)) {
+            return [new MultiMove([
+                new Move(position, endPos),
+                new Move(position2, endPos2)]
+            )];
+        }
+        return [];
+    }
+}
+
+export class EnPassant extends MovementPattern {
+    constructor() {
+        super();
+    }
+    setPiece(piece) {
+        this.color = piece.color;
+    }
+    listOfMoves(board, position) {
+        let capture1 = new Vector(position.x + 1, position.y);
+        let capture2 = new Vector(position.x - 1, position.y);
+        let to1 = new Vector(position.x + 1, position.y + (this.color == 'white' ? -1 : 1));
+        let to2 = new Vector(position.x - 1, position.y + (this.color == 'white' ? -1 : 1));
+        if (board.enPassantSquares.some(square => square.equals(to1))) {
+            let piece = board.at(capture1);
+            if (piece != null && piece.color != this.color) {
+                return [new ComplexCapture(position, to1, piece, capture1)];
+            }
+        }
+        if (board.enPassantSquares.some(square => square.equals(to2))) {
+            console.log("En passant to", to2);
+            let piece = board.at(capture2);
+            if (piece != null && piece.color != this.color) {
+                return [new ComplexCapture(position, to2, piece, capture2)];
+            }
         }
         return [];
     }

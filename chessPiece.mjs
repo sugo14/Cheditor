@@ -1,6 +1,5 @@
-import { Movement, Capture, MovementCapture, Forward, Repeated, NTimeOnly } from "./movementPatterns.mjs";
+import { Movement, Capture, MovementCapture, Forward, Repeated, NTimeOnly, KingSideCastle, QueenSideCastle, EnPassant } from "./movementPatterns.mjs";
 import { Move, Vector } from "./vector.mjs";
-/* import _ from "lodash"; */ // Console Chess
 
 export class ChessPieceType {
     constructor(appearances, movements) {
@@ -48,6 +47,7 @@ export const PAWN = new ChessPieceType(
         new Forward(new Movement(new Vector(0, 1))),
         new Forward(new Capture(new Vector(1, 1))),
         new Forward(new Capture(new Vector(-1, 1))),
+        new EnPassant(),
     ]
 )
 export const KNIGHT = new ChessPieceType(
@@ -69,7 +69,7 @@ export const BISHOP = new ChessPieceType(
         new Repeated(new MovementCapture(new Vector(1, 1))), 
         new Repeated(new MovementCapture(new Vector(1, -1))),
         new Repeated(new MovementCapture(new Vector(-1, 1))),
-        new Repeated(new MovementCapture(new Vector(-1, -1)))
+        new Repeated(new MovementCapture(new Vector(-1, -1))),
     ]
 )
 export const ROOK = new ChessPieceType(
@@ -78,7 +78,7 @@ export const ROOK = new ChessPieceType(
         new Repeated(new MovementCapture(new Vector(0, 1))), 
         new Repeated(new MovementCapture(new Vector(1, 0))),
         new Repeated(new MovementCapture(new Vector(0, -1))),
-        new Repeated(new MovementCapture(new Vector(-1, 0)))
+        new Repeated(new MovementCapture(new Vector(-1, 0))),
     ]
 )
 export const QUEEN = new ChessPieceType(
@@ -91,7 +91,7 @@ export const QUEEN = new ChessPieceType(
         new Repeated(new MovementCapture(new Vector(0, 1))), 
         new Repeated(new MovementCapture(new Vector(1, 0))),
         new Repeated(new MovementCapture(new Vector(0, -1))),
-        new Repeated(new MovementCapture(new Vector(-1, 0)))
+        new Repeated(new MovementCapture(new Vector(-1, 0))),
     ]
 )
 export const KING = new ChessPieceType(
@@ -104,10 +104,8 @@ export const KING = new ChessPieceType(
         new MovementCapture(new Vector(0, 1)), 
         new MovementCapture(new Vector(1, 0)),
         new MovementCapture(new Vector(0, -1)),
-        new MovementCapture(new Vector(-1, 0))
+        new MovementCapture(new Vector(-1, 0)),
+        new KingSideCastle(),
+        new QueenSideCastle(),
     ]
-)
-export const BLOCK = new ChessPieceType(
-    ["o", "O"],
-    []
 )

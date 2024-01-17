@@ -17,15 +17,14 @@ export class Vector {
 }
 
 export class Move {
-    constructor(from, to, isCapture) {
+    constructor(from, to, capturedPiece) {
         this.from = from;
         this.to = to;
-        if (isCapture == undefined) {
-            this.isCapture = false;
-        }
-        else {
-            this.isCapture = isCapture;
-        }
+        this.capturedPiece = capturedPiece;
+    }
+
+    isCapture() {
+        return (this.capturedPiece != undefined);
     }
 
     equals(other) {
@@ -35,8 +34,63 @@ export class Move {
         return this.from.equals(other.from) && this.to.equals(other.to);
     }
 
+    do(board) {
+        let piece = board.at(this.from);
+        board.place(piece, this.to);
+        delete board.board[positionToString(this.from)];
+    }
+
+    undo(board) {
+        let piece = board.at(this.to);
+        board.place(piece, this.from);
+        if (this.isCapture()) {
+            board.place(this.capturedPiece, this.to);
+        }
+        else {
+            delete board.board[positionToString(this.to)];
+        }
+    }
+
     toString() {
-        return positionToString(this.from) + ' -> ' + positionToString(this.to) + (this.isCapture ? ' (capture)' : '');
+        return positionToString(this.from) + ' -> ' + positionToString(this.to) + (this.isCapture() ? ' (captured ' + this.capturedPiece.toString() + ')' : '');
+    }
+}
+
+export class ComplexCapture extends Move {
+    constructor(from, to, capturedPiece, capturedPiecePos) {
+        super(from, to, capturedPiece);
+        this.capturedPiecePos = capturedPiecePos;
+    }
+
+    do(board) {
+        let piece = board.at(this.from);
+        board.place(piece, this.to);
+        delete board.board[positionToString(this.from)];
+        delete board.board[positionToString(this.capturedPiecePos)];
+    }
+
+    undo(board) {
+        let piece = board.at(this.to);
+        board.place(piece, this.from);
+        board.place(this.capturedPiece, this.capturedPiecePos);
+    }
+}
+
+export class MultiMove extends Move {
+    constructor(listOfMoves) {
+        super(listOfMoves[0].from, listOfMoves[0].to, listOfMoves[0].capturedPiece);
+        this.listOfMoves = listOfMoves;
+    }
+
+    do(board) {
+        for (let move of this.listOfMoves) {
+            move.do(board);
+        }
+    }
+    undo(board) {
+        for (let i = 0; i < this.listOfMoves.length; i++) {
+            this.listOfMoves[this.listOfMoves.length - 1 - i].undo(board);
+        }
     }
 }
 

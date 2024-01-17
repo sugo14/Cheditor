@@ -1,6 +1,7 @@
 'use strict';
 
-import { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, BLOCK } from './chessPiece.mjs';
+import { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING} from './chessPiece.mjs';
+import { NTimeOnly } from './movementPatterns.mjs';
 import { Vector, Move, positionToString, stringToPosition } from './vector.mjs';
 
 export class ChessBoard {
@@ -9,6 +10,11 @@ export class ChessBoard {
         this.width = 8;
         this.turnPlayer = "white";
         this.board = {};
+        this.moveLog = [];
+        this.castleRights = {
+            "white": { "kingSide": true, "queenSide": true }, "black": { "kingSide": true, "queenSide": true }
+        };
+        this.enPassantSquares = [];
 
         for (let x = 0; x < this.width; x++) {
             this.place(PAWN.init("black"), new Vector(x, 1));
@@ -86,11 +92,14 @@ export class ChessBoard {
         let moves = piece.listOfMoves(this, position);
         return moves;
     }
-    
-    #move(move) {
-        let piece = this.at(move.from);
-        this.place(piece, move.to);
-        delete this.board[positionToString(move.from)];
+    isPositionAttacked(position, color) {
+        let allPossibleMoves = this.possibleMoves(color);
+        for (let move of allPossibleMoves) {
+            if (move.to.equals(position) && move.isCapture()) {
+                return true;
+            }
+        }
+        return false;
     }
     move(move) {
         let piece = this.at(move.from);
@@ -101,9 +110,38 @@ export class ChessBoard {
         if (piece.color == this.turnPlayer) {
             let possibleMoves = piece.listOfMoves(this, move.from);
             if (possibleMoves.some(aMove => aMove.equals(move))) {
-                // success
-                this.#move(move);
+                move.do(this);
                 this.turnPlayer = (this.turnPlayer == "white") ? "black" : "white";
+                this.moveLog.push(move);
+                // castle rights stuff
+                if (piece.isOfType(KING)) {
+                    this.castleRights[piece.color].kingSide = false;
+                    this.castleRights[piece.color].queenSide = false;
+                    // console.log("all castling rights taken away for", piece.color, "because their king moved");
+                }
+                if (piece.isOfType(ROOK)) {
+                    if (move.from.x == 0) {
+                        this.castleRights[piece.color].queenSide = false;
+                        // console.log("qs castling rights taken away for", piece.color, "because their qs rook moved");
+                    }
+                    if (move.from.x == 7) {
+                        this.castleRights[piece.color].kingSide = false;
+                        // console.log("ks castling rights taken away for", piece.color, "because their ks rook moved");
+                    }
+                }
+                if (this.isInCheck(this.turnPlayer)) {
+                    this.castleRights[this.turnPlayer].kingSide = false;
+                    this.castleRights[this.turnPlayer].queenSide = false;
+                    // console.log("all castling rights taken away for", piece.color, "because their king is in check");
+                }
+                // en passant stuff
+                this.enPassantSquares = [];
+                if (piece.isOfType(PAWN)) {
+                    if ((move.from.y + ((piece.color == "white") ? -2 : 2)) == move.to.y) {
+                        this.enPassantSquares.push(new Vector(move.from.x, move.to.y + ((piece.color == "white") ? 1 : -1)));
+                        console.log("en passant possible at",positionToString(this.enPassantSquares[0]));
+                    }
+                }
                 return true;
             }
         }
@@ -119,6 +157,9 @@ export class ChessBoard {
         let kingPos = null;
         for (let key of Object.keys(this.board)) {
             let piece = this.board[key];
+            if (piece == null) {
+                continue;
+            }
             if (piece.color == color) {
                 if (piece.isOfType(KING)) {
                     kingPos = stringToPosition(key);
@@ -150,21 +191,11 @@ export class ChessBoard {
     validateMoves(moves, turnPlayer) {
         let newMoves = [];
         for (let move of moves) {
-            // make move
-            let pieceCaptured = null;
-            if (move.isCapture) {
-                pieceCaptured = this.at(move.to);
-            }
-            this.#move(move);
-            // check if king would be put in check as a result
+            move.do(this);
             if (!this.isInCheck(turnPlayer)) {
                 newMoves.push(move);
             }
-            // undo move
-            this.#move(new Move(move.to, move.from));
-            if (pieceCaptured != null) {
-                this.place(pieceCaptured, move.to);
-            }
+            move.undo(this);
         }
         return newMoves;
     }
