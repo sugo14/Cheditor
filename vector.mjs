@@ -72,6 +72,7 @@ export class ComplexCapture extends Move {
     undo(board) {
         let piece = board.at(this.to);
         board.place(piece, this.from);
+        delete board.board[positionToString(this.to)];
         board.place(this.capturedPiece, this.capturedPiecePos);
     }
 }
