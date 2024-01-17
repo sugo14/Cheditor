@@ -4,16 +4,9 @@ import { Vector, Move, positionToString, stringToPosition } from './vector.mjs';
 let selectedCellElement = null;
 let possibleMoves = [];
 let lastMove = null;
-let board = new ChessBoard();
+let board;
 let boardElement;
-let audio = {
-    whiteMove: new Audio('sfx/move-white.mp3'),
-    blackMove: new Audio('sfx/move-black.mp3'),
-    capture: new Audio('sfx/capture.mp3'),
-    check: new Audio('sfx/check.mp3'),
-    checkmate: new Audio('sfx/game-end.webm'),
-    promote: new Audio('sfx/promote.mp3'),
-}
+let audio;
 
 function cellOnClick(cell) {
     const start = Date.now();
@@ -26,9 +19,9 @@ function cellOnClick(cell) {
     }
     for (let move of possibleMoves) {
         if (move.to.equals(stringToPosition(posStr.innerText))) {
-            lastMove = new Move(move.from, move.to, move.isCapture);
+            lastMove = new Move(move.from, move.to, move.capturedPiece);
             board.move(move);
-            if (move.isCapture) {
+            if (move.isCapture()) {
                 audio["capture"].play();
             }
             else {
@@ -49,6 +42,15 @@ function imageForPiece(piece) {
 }
 
 function createBoard() {
+    board = new ChessBoard();
+    audio = {
+        whiteMove: new Audio('sfx/move-white.mp3'),
+        blackMove: new Audio('sfx/move-black.mp3'),
+        capture: new Audio('sfx/capture.mp3'),
+        check: new Audio('sfx/check.mp3'),
+        checkmate: new Audio('sfx/game-end.webm'),
+        promote: new Audio('sfx/promote.mp3'),
+    }
     let start = Date.now();
     for (let y = 0; y < board.height; y++) {
         for (let x = 0; x < board.width; x++) {
@@ -122,7 +124,7 @@ function renderBoard() {
             let cell = document.querySelectorAll("p");
             for (let c of cell) {
                 if (positionToString(move.to) == c.innerText) {
-                    if (move.isCapture) {
+                    if (move.isCapture()) {
                         let captureSymbol = document.createElement("div");
                         captureSymbol.id = "possibleCapture";
                         c.parentNode.appendChild(captureSymbol);
