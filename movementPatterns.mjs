@@ -239,7 +239,6 @@ export class EnPassant extends MovementPattern {
             }
         }
         if (board.enPassantSquares.some(square => square.equals(to2))) {
-            console.log("En passant to", to2);
             let piece = board.at(capture2);
             if (piece != null && piece.color != this.color) {
                 return [new ComplexCapture(position, to2, piece, capture2)];

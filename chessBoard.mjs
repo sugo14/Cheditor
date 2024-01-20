@@ -1,6 +1,6 @@
 'use strict';
 
-import { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING} from './chessPiece.mjs';
+import { pieces } from './chessPiece.mjs';
 import { NTimeOnly } from './movementPatterns.mjs';
 import { Vector, Move, positionToString, stringToPosition } from './vector.mjs';
 
@@ -17,20 +17,20 @@ export class ChessBoard {
         this.enPassantSquares = [];
 
         for (let x = 0; x < this.width; x++) {
-            this.place(PAWN.init("black"), new Vector(x, 1));
-            this.place(PAWN.init("white"), new Vector(x, 6));
+            this.place(pieces.PAWN.init("black"), new Vector(x, 1));
+            this.place(pieces.PAWN.init("white"), new Vector(x, 6));
         }
         for (let i = 0; i < 2; i++) {
             let color = (i == 0) ? "black" : "white";
             let row = (color == "black") ? 0 : 7;
-            this.place(ROOK.init(color), new Vector(0, row));
-            this.place(KNIGHT.init(color), new Vector(1, row));
-            this.place(BISHOP.init(color), new Vector(2, row));
-            this.place(QUEEN.init(color), new Vector(3, row));
-            this.place(KING.init(color), new Vector(4, row));
-            this.place(BISHOP.init(color), new Vector(5, row));
-            this.place(KNIGHT.init(color), new Vector(6, row));
-            this.place(ROOK.init(color), new Vector(7, row));
+            this.place(pieces.ROOK.init(color), new Vector(0, row));
+            this.place(pieces.KNIGHT.init(color), new Vector(1, row));
+            this.place(pieces.BISHOP.init(color), new Vector(2, row));
+            this.place(pieces.QUEEN.init(color), new Vector(3, row));
+            this.place(pieces.KING.init(color), new Vector(4, row));
+            this.place(pieces.BISHOP.init(color), new Vector(5, row));
+            this.place(pieces.KNIGHT.init(color), new Vector(6, row));
+            this.place(pieces.ROOK.init(color), new Vector(7, row));
         }
     }
 
@@ -68,6 +68,9 @@ export class ChessBoard {
         if (!(position.x < 0 || position.x >= this.width || position.y < 0 || position.y >= this.height)) {
             this.board[positionToString(position)] = piece;
         }
+    }
+    remove(position) {
+        delete this.board[positionToString(position)];
     }
 
     possibleMoves(color) {
@@ -114,12 +117,12 @@ export class ChessBoard {
                 this.turnPlayer = (this.turnPlayer == "white") ? "black" : "white";
                 this.moveLog.push(move);
                 // castle rights stuff
-                if (piece.isOfType(KING)) {
+                if (piece.isOfType(pieces.KING)) {
                     this.castleRights[piece.color].kingSide = false;
                     this.castleRights[piece.color].queenSide = false;
                     // console.log("all castling rights taken away for", piece.color, "because their king moved");
                 }
-                if (piece.isOfType(ROOK)) {
+                if (piece.isOfType(pieces.ROOK)) {
                     if (move.from.x == 0) {
                         this.castleRights[piece.color].queenSide = false;
                         // console.log("qs castling rights taken away for", piece.color, "because their qs rook moved");
@@ -136,10 +139,9 @@ export class ChessBoard {
                 }
                 // en passant stuff
                 this.enPassantSquares = [];
-                if (piece.isOfType(PAWN)) {
+                if (piece.isOfType(pieces.PAWN)) {
                     if ((move.from.y + ((piece.color == "white") ? -2 : 2)) == move.to.y) {
                         this.enPassantSquares.push(new Vector(move.from.x, move.to.y + ((piece.color == "white") ? 1 : -1)));
-                        console.log("en passant possible at",positionToString(this.enPassantSquares[0]));
                     }
                 }
                 return true;
@@ -161,7 +163,7 @@ export class ChessBoard {
                 continue;
             }
             if (piece.color == color) {
-                if (piece.isOfType(KING)) {
+                if (piece.isOfType(pieces.KING)) {
                     kingPos = stringToPosition(key);
                     break;
                 }
@@ -180,6 +182,11 @@ export class ChessBoard {
     }
     isInMate(color) {
         let possibleMoves = this.possibleMoves(color);
+        return (possibleMoves.length == 0);
+    }
+    // TODO: remove this
+    isInMateButCooler(color) {
+        let possibleMoves = this.validateMoves(this.possibleMoves(color), color);
         return (possibleMoves.length == 0);
     }
     isInCheckmate(color) {

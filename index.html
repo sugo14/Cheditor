@@ -6,15 +6,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- <script type="module" src="script.mjs"></script> -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
     <title>Cheditor</title>
     <script type="module" src="webApp.mjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="images/logo.svg">
 </head>
 
 <body>
     <div id="container">
-        <div id="board">
+        <div id="left-side">
+            <div id="board"> </div>
+        </div>
+        <div id="right-side">
+            <img src="images/cross.svg" id="close-right-side">
+            <div id="cheditor-box">
+                <div id="title">
+                    <img src="images/logo.svg" id="logo">
+                    <h1>CHEDITOR</h1>
+                </div>
+                <button id="new-game">New Game</button>
+                <div class="piece-selector-row">
+                    <div class="piece-selector pawn white"></div>
+                    <div class="piece-selector knight white"></div>
+                    <div class="piece-selector bishop white"></div>
+                    <div class="piece-selector rook white"></div>
+                    <div class="piece-selector queen white"></div>
+                </div>
+                <div class="piece-selector-row">
+                    <div class="piece-selector king white"></div>
+                    <div class="piece-selector chancellor white"></div>
+                    <div class="piece-selector superqueen white"></div>
+                    <div class="piece-selector archbishop white"></div>
+                    <div class="piece-selector nightrider white"></div>
+                </div>
+                <div class="piece-selector-row">
+                    <div class="piece-selector color-change"></div>
+                    <div class="piece-selector remove-piece"></div>
+                </div>
+            </div>
         </div>
     </div>
 </body>
