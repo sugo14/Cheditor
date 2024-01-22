@@ -185,7 +185,7 @@ export class ChessBoard {
         return (possibleMoves.length == 0);
     }
     // TODO: remove this
-    isInMateButCooler(color) {
+    isInDeepMate(color) {
         let possibleMoves = this.validateMoves(this.possibleMoves(color), color);
         return (possibleMoves.length == 0);
     }

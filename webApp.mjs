@@ -134,8 +134,8 @@ class ChessGame {
     }
 
     playSound(move) {
-        // TODO: remove this shit
-        if (this.board.isInMateButCooler(this.board.turnPlayer)) {
+        // TODO: remove this
+        if (this.board.isInDeepMate(this.board.turnPlayer)) {
             this.audio["gameEnd"].play();
             console.log("game ended");
             this.renderBoard();

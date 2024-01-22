@@ -1,6 +1,6 @@
 'use strict';
 
-import { Vector, Move, ComplexCapture, MultiMove, positionToString } from './vector.mjs';
+import { Vector, Move, ComplexCapture, MultiMove } from './vector.mjs';
 
 class MovementPattern {
     constructor(movementVector) {
@@ -233,15 +233,15 @@ export class EnPassant extends MovementPattern {
         let to1 = new Vector(position.x + 1, position.y + (this.color == 'white' ? -1 : 1));
         let to2 = new Vector(position.x - 1, position.y + (this.color == 'white' ? -1 : 1));
         if (board.enPassantSquares.some(square => square.equals(to1))) {
-            let piece = board.at(capture1);
-            if (piece != null && piece.color != this.color) {
-                return [new ComplexCapture(position, to1, piece, capture1)];
+            let pieceCaptured = board.at(capture1);
+            if (pieceCaptured != null && pieceCaptured.color != this.color) {
+                return [new ComplexCapture(position, to1, pieceCaptured, capture1)];
             }
         }
         if (board.enPassantSquares.some(square => square.equals(to2))) {
-            let piece = board.at(capture2);
-            if (piece != null && piece.color != this.color) {
-                return [new ComplexCapture(position, to2, piece, capture2)];
+            let pieceCaptured = board.at(capture2);
+            if (pieceCaptured != null && pieceCaptured.color != this.color) {
+                return [new ComplexCapture(position, to2, pieceCaptured, capture2)];
             }
         }
         return [];
