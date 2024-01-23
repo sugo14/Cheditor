@@ -210,7 +210,8 @@ export class QueenSideCastle extends MovementPattern {
         let endPos = new Vector(position.x - 2, position.y);
         let position2 = new Vector(position.x - 4, position.y);
         let endPos2 = new Vector(position.x - 1, position.y);
-        if (board.positionEmpty(endPos) && board.positionEmpty(endPos2)) {
+        let inBetween = new Vector(position.x - 3, position.y);
+        if (board.positionEmpty(endPos) && board.positionEmpty(endPos2) && board.positionEmpty(inBetween)) {
             return [new MultiMove([
                 new Move(position, endPos),
                 new Move(position2, endPos2)]
