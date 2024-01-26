@@ -1,4 +1,4 @@
-import { Movement, Capture, MovementCapture, Forward, Repeated, NTimeOnly, KingSideCastle, QueenSideCastle, EnPassant } from "./movementPatterns.mjs";
+import { Movement, Capture, MovementCapture, Forward, RequiredValidMoves, Repeated, NTimeOnly, KingSideCastle, QueenSideCastle, EnPassant } from "./movementPatterns.mjs";
 import { Move, Vector } from "./vector.mjs";
 
 export class ChessPieceType {
@@ -44,7 +44,10 @@ export let pieces = {
     PAWN: new ChessPieceType(
         ["p", "P"],
         [
-            new NTimeOnly(1, new Forward(new Movement(new Vector(0, 2)))),
+            new RequiredValidMoves(
+                [new Forward(new Movement(new Vector(0, 1)))],
+                new NTimeOnly(1, new Forward(new Movement(new Vector(0, 2))))
+            ),
             new Forward(new Movement(new Vector(0, 1))),
             new Forward(new Capture(new Vector(1, 1))),
             new Forward(new Capture(new Vector(-1, 1))),

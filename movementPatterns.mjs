@@ -1,6 +1,6 @@
 'use strict';
 
-import { Vector, Move, ComplexCapture, MultiMove } from './vector.mjs';
+import { Vector, Move, ComplexCapture, MultiMove, positionToString } from './vector.mjs';
 
 class MovementPattern {
     constructor(movementVector) {
@@ -89,6 +89,29 @@ class MovementPatternWrapper extends MovementPattern {
     setPiece(piece) {
         super.setPiece(piece);
         this.movementPattern.setPiece(piece);
+    }
+}
+
+export class RequiredValidMoves extends MovementPatternWrapper {
+    constructor(requiredValidMoves, movementPattern) {
+        super(movementPattern);
+        this.requiredValidMoves = requiredValidMoves;
+    }
+    setPiece(piece) {
+        super.setPiece(piece);
+        for (let requiredMove of this.requiredValidMoves) {
+            requiredMove.setPiece(piece);
+        }
+    }
+    listOfMoves(board, position) {
+        for (let requiredMove of this.requiredValidMoves) {
+            let moves = requiredMove.listOfMoves(board, position);
+            if (moves.length == 0) {
+                return [];
+            }
+        }
+        let moves = this.movementPattern.listOfMoves(board, position);
+        return moves;
     }
 }
 
